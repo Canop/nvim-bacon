@@ -1,22 +1,19 @@
--- A companion to bacon
--- 
---
--- Note: the whole plugin's structure was based on this article:
--- https://dev.to/2nit/how-to-write-neovim-plugins-in-lua-5cca
+-- A companion to bacon - https://dystroy.org/bacon
 
 local api = vim.api
 local buf, win
 
-local function center(str)
-  local width = api.nvim_win_get_width(0)
+local locations
+local next_location_idx = 1 -- 1-indexed
+
+local function center(str, width)
   local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
-  return string.rep(' ', shift) .. str
+  local remain = width - shift - string.len(str)
+  return string.rep(' ', shift) .. str .. string.rep(' ', remain)
 end
 
 local function open_window()
   buf = vim.api.nvim_create_buf(false, true)
-  local border_buf = vim.api.nvim_create_buf(false, true)
-
   vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
   vim.api.nvim_buf_set_option(buf, 'filetype', 'bacon')
 
@@ -28,15 +25,6 @@ local function open_window()
   local row = math.ceil((height - win_height) / 2 - 1)
   local col = math.ceil((width - win_width) / 2)
 
-  local border_opts = {
-    style = "minimal",
-    relative = "editor",
-    width = win_width + 2,
-    height = win_height + 2,
-    row = row - 1,
-    col = col - 1
-  }
-
   local opts = {
     style = "minimal",
     relative = "editor",
@@ -46,72 +34,32 @@ local function open_window()
     col = col
   }
 
-  local border_lines = { '╔' .. string.rep('═', win_width) .. '╗' }
-  local middle_line = '║' .. string.rep(' ', win_width) .. '║'
-  for i=1, win_height do
-    table.insert(border_lines, middle_line)
-  end
-  table.insert(border_lines, '╚' .. string.rep('═', win_width) .. '╝')
-  vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
-
-  local border_win = vim.api.nvim_open_win(border_buf, true, border_opts)
   win = api.nvim_open_win(buf, true, opts)
-  api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! "'..border_buf)
-
   vim.api.nvim_win_set_option(win, 'cursorline', true)
-
-  api.nvim_buf_set_lines(buf, 0, -1, false, { center('Bacon Locations (hit q to close)'), '', ''})
+  local width = api.nvim_win_get_width(0)
+  api.nvim_buf_set_lines(buf, 0, -1, false, { center('Bacon Locations (hit q to close)', width), '', ''})
   api.nvim_buf_add_highlight(buf, -1, 'BaconHeader', 0, 0, -1)
 end
 
--- see if the file exists
+
+local function close_window()
+  api.nvim_win_close(win, true)
+end
+
+-- Tell whether a file exists
 function file_exists(file)
   local f = io.open(file, "rb")
   if f then f:close() end
   return f ~= nil
 end
 
--- get all lines from a file, returns an empty 
--- list/table if the file does not exist
+-- get all lines from a file
 function lines_from(file)
-  if not file_exists(file) then return {} end
   local lines = {}
   for line in io.lines(file) do 
     lines[#lines + 1] = line
   end
   return lines
-end
-
-local function update_view()
-  vim.api.nvim_buf_set_option(buf, 'modifiable', true)
-
-  local result = lines_from(".bacon-locations")
-
-  if #result == 0 then table.insert(result, '') end
-  for k,v in pairs(result) do
-    result[k] = '  '..v
-  end
-
-  api.nvim_buf_set_lines(buf, 2, -1, false, result)
-  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
-end
-
-local function close_window()
-  api.nvim_win_close(win, true)
-end
-
--- open one of the locations
-local function open_location()
-  local location = api.nvim_get_current_line()
-  -- location is normally file_path:line:col
-  local parts = string.gmatch(location, '[^:]+')
-  local path = parts()
-  local line = tonumber(parts())
-  local col = tonumber(parts())
-  close_window()
-  -- ok, if somebody knows how to directly jump to a precise location, please tell me
-  api.nvim_command('edit ' .. path)
-  api.nvim_win_set_cursor(0, {line, col})
 end
 
 local function move_cursor()
@@ -121,7 +69,7 @@ end
 
 local function set_mappings()
   local mappings = {
-    ['<cr>'] = 'open_location()',
+    ['<cr>'] = 'open_selected_location()',
     q = 'close_window()',
     k = 'move_cursor()'
   }
@@ -141,17 +89,114 @@ local function set_mappings()
   end
 end
 
-local function bacon_list()
-  open_window()
-  set_mappings()
-  update_view()
-  api.nvim_win_set_cursor(win, {3, 0})
+-- Open a specific location and remember it as "last
+local function open_location(idx)
+    print(idx)
+  local location = locations[idx]
+  api.nvim_command('edit ' .. location.path)
+  api.nvim_win_set_cursor(0, {location.line, location.col - 1})
+  next_location_idx = idx + 1
 end
 
+-- Open the location under the cursor in the location window
+local function open_selected_location()
+  local i = api.nvim_win_get_cursor(win)[1] - 2
+  close_window()
+  if (i > 0 and i <= #locations) then
+      open_location(i)
+  end
+end
+
+local function same_location(a, b)
+  return a and b and a.path == b.path and a.line == b.line and a.col == b.col
+end
+
+-- Load the locations found in the .bacon-locations file.
+-- Doesn't modify the display, only the location table.
+-- We look in the current work directory and in the parent directories.
+local function bacon_load()
+  locations = {}
+  local dir = ''
+  repeat 
+    local file = dir .. '.bacon-locations'
+    if file_exists(file) then
+      next_location_idx = 1
+      local raw_lines = lines_from(file)
+      for i, raw_line in ipairs(raw_lines) do
+        -- each line is like "error lua/bacon.lua:61:15"
+        local cat, path, line, col = string.match(raw_line, '(%S+) (%S+):(%d+):(%d+)')
+        if #cat > 0 then
+          local location = { cat=cat, path=dir..path, line=tonumber(line), col=tonumber(col) }
+          table.insert(locations, location)
+        end
+      end
+      break
+    end
+    dir = '../' .. dir
+  until not file_exists(dir)
+end
+
+-- Fill our buf with the locations, one per line
+local function update_view()
+  vim.api.nvim_buf_set_option(buf, 'modifiable', true)
+  local lines = {}
+  for i, location in ipairs(locations) do
+     local shield = center(''..i, 5)
+     table.insert(lines, ' ' .. shield .. location.path .. ':' .. location.line .. ':' .. location.col)
+  end
+  api.nvim_buf_set_lines(buf, 2, -1, false, lines)
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+end
+
+-- Show the window with the locations, assuming they have been previously loaded
+local function bacon_show()
+  if #locations > 0 then
+    open_window()
+    update_view()
+    set_mappings()
+    api.nvim_win_set_cursor(win, {3, 0})
+  else
+    print('Error: no bacon locations loaded')
+  end
+end
+
+-- Load the locations, then show them
+local function bacon_list()
+  bacon_load()
+  bacon_show()
+end
+
+local function bacon_previous()
+  if #locations > 0 then
+    next_location_idx = next_location_idx - 2
+    if next_location_idx < 1 then
+      next_location_idx = #locations
+    end
+    open_location(next_location_idx)
+  else
+    print('Error: no bacon locations loaded')
+  end
+end
+
+local function bacon_next()
+  if #locations > 0 then
+    if next_location_idx > #locations then
+      next_location_idx = 1
+    end
+    open_location(next_location_idx)
+  else
+    print('Error: no bacon locations loaded')
+  end
+end
+
+-- Return the public API
 return {
+  bacon_load = bacon_load,
   bacon_list = bacon_list,
-  update_view = update_view,
-  open_location = open_location,
+  bacon_show = bacon_show,
+  bacon_previous = bacon_previous,
+  bacon_next = bacon_next,
+  open_selected_location = open_selected_location,
   move_cursor = move_cursor,
   close_window = close_window
 }
