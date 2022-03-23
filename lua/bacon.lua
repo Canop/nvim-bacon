@@ -4,7 +4,7 @@ local api = vim.api
 local buf, win
 
 local locations
-local next_location_idx = 1 -- 1-indexed
+local location_idx = 0 -- 1-indexed, 0 is "none"
 
 local function center(str, width)
   local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
@@ -91,11 +91,10 @@ end
 
 -- Open a specific location and remember it as "last
 local function open_location(idx)
-    print(idx)
   local location = locations[idx]
   api.nvim_command('edit ' .. location.path)
   api.nvim_win_set_cursor(0, {location.line, location.col - 1})
-  next_location_idx = idx + 1
+  location_idx = idx
 end
 
 -- Open the location under the cursor in the location window
@@ -115,12 +114,15 @@ end
 -- Doesn't modify the display, only the location table.
 -- We look in the current work directory and in the parent directories.
 local function bacon_load()
+  local old_location = nil
+  if location_idx > 0 then
+    old_location = locations[location_idx]
+  end
   locations = {}
   local dir = ''
   repeat 
     local file = dir .. '.bacon-locations'
     if file_exists(file) then
-      next_location_idx = 1
       local raw_lines = lines_from(file)
       for i, raw_line in ipairs(raw_lines) do
         -- each line is like "error lua/bacon.lua:61:15"
@@ -128,6 +130,15 @@ local function bacon_load()
         if #cat > 0 then
           local location = { cat=cat, path=dir..path, line=tonumber(line), col=tonumber(col) }
           table.insert(locations, location)
+        end
+      end
+      location_idx = 0
+      if old_location then
+        for idx, location in ipairs(locations) do
+          if same_location(location, old_location) then
+            location_idx = idx
+            break
+          end
         end
       end
       break
@@ -168,11 +179,11 @@ end
 
 local function bacon_previous()
   if #locations > 0 then
-    next_location_idx = next_location_idx - 2
-    if next_location_idx < 1 then
-      next_location_idx = #locations
+    location_idx = location_idx - 1
+    if location_idx < 1 then
+      location_idx = #locations
     end
-    open_location(next_location_idx)
+    open_location(location_idx)
   else
     print('Error: no bacon locations loaded')
   end
@@ -180,10 +191,11 @@ end
 
 local function bacon_next()
   if #locations > 0 then
-    if next_location_idx > #locations then
-      next_location_idx = 1
+    location_idx = location_idx + 1
+    if location_idx > #locations then
+      location_idx = 1
     end
-    open_location(next_location_idx)
+    open_location(location_idx)
   else
     print('Error: no bacon locations loaded')
   end
