@@ -73,6 +73,9 @@ local function set_mappings()
     q = 'close_window()',
     k = 'move_cursor()'
   }
+  for digit = 1, 9 do
+    mappings[''..digit] = 'close_window() require"bacon".open_location('..digit..')'
+  end
 
   for k,v in pairs(mappings) do
     api.nvim_buf_set_keymap(buf, 'n', k, ':lua require"bacon".'..v..'<cr>', {
@@ -82,7 +85,7 @@ local function set_mappings()
   local other_chars = {
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'i', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
   }
-  for k,v in ipairs(other_chars) do
+  for k, v in ipairs(other_chars) do
     api.nvim_buf_set_keymap(buf, 'n', v, '', { nowait = true, noremap = true, silent = true })
     api.nvim_buf_set_keymap(buf, 'n', v:upper(), '', { nowait = true, noremap = true, silent = true })
     api.nvim_buf_set_keymap(buf, 'n',  '<c-'..v..'>', '', { nowait = true, noremap = true, silent = true })
@@ -152,8 +155,9 @@ local function update_view()
   vim.api.nvim_buf_set_option(buf, 'modifiable', true)
   local lines = {}
   for i, location in ipairs(locations) do
+     local cat = string.upper(location.cat):sub(1, 1)
      local shield = center(''..i, 5)
-     table.insert(lines, ' ' .. shield .. location.path .. ':' .. location.line .. ':' .. location.col)
+     table.insert(lines, ' ' .. cat .. shield .. location.path .. ':' .. location.line .. ':' .. location.col)
   end
   api.nvim_buf_set_lines(buf, 2, -1, false, lines)
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
@@ -165,7 +169,7 @@ local function bacon_show()
     open_window()
     update_view()
     set_mappings()
-    api.nvim_win_set_cursor(win, {3, 0})
+    api.nvim_win_set_cursor(win, {3, 1})
   else
     print('Error: no bacon locations loaded')
   end
@@ -209,6 +213,7 @@ return {
   bacon_previous = bacon_previous,
   bacon_next = bacon_next,
   open_selected_location = open_selected_location,
+  open_location = open_location,
   move_cursor = move_cursor,
   close_window = close_window
 }

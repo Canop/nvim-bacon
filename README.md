@@ -1,13 +1,8 @@
 # nvim-bacon
 
-This plugin enable viewing the locations found in a `.bacon-locations` file, and jumping to them.
+This plugin enables viewing the locations found in a `.bacon-locations` file, and jumping to them.
 
 This makes sense when this file is created by [bacon](https://dystroy.org/bacon) with `-e` option running in nvim's work directory or in a parent directory.
-
-## Warnings:
-
-* this is an unannounced early work in progress
-* the `-e` option of bacon isn't in the main branch yet
 
 ## API:
 
@@ -29,12 +24,19 @@ You'll use this plugin in nvim while a bacon instance is running in another pane
 You probably want to define at least two shortcuts, for example like this:
 
 ```vimscript
-nnoremap , :BaconList<CR>
 nnoremap ! :BaconLoad<CR>:w<CR>:BaconNext<CR>
+nnoremap , :BaconList<CR>
 ```
 
-The first shorctut, which is mapped to the <kbd>,</kbd> key, opens the list of all bacon locations.
+The first shortcut navigates from location to location, without opening the window.
+This is probably the one you'll use all the time.
+You may notice it loads the list (`:BaconLoad`) then saves the current document (`:w`), to prevent both race conditions and having a bunch of unsaved buffers.
 
-The second one navigates from location to location, without opening the window. You may notice it loads the list (`:BaconLoad`) then saves the current document (`:w`), to prevent both race conditions and having a bunch of unsaved buffers.
+The second shorctut, which is mapped to the <kbd>,</kbd> key, opens the list of all bacon locations:
+
+![list](doc/list.png)
+
+When the list is open, you can select a line and hit <kbd>enter</kbd> or just hit the numero of the location if it's in 1-9.
+As there's no need to wait for the window to appear, you may just type <kbd>,</kbd><kbd>3</kbd> to go to location 3 without opening the window.
 
 You may define other shortcuts using the various API functions.
