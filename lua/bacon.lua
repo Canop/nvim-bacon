@@ -41,7 +41,6 @@ local function open_window()
   api.nvim_buf_add_highlight(buf, -1, 'BaconHeader', 0, 0, -1)
 end
 
-
 local function close_window()
   api.nvim_win_close(win, true)
 end
@@ -166,6 +165,7 @@ end
 -- Show the window with the locations, assuming they have been previously loaded
 local function bacon_show()
   if #locations > 0 then
+    location_idx = 0
     open_window()
     update_view()
     set_mappings()

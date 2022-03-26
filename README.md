@@ -2,7 +2,7 @@
 
 This plugin enables viewing the locations found in a `.bacon-locations` file, and jumping to them.
 
-This makes sense when this file is created by [bacon](https://dystroy.org/bacon) with `-e` option running in nvim's work directory or in a parent directory.
+This makes sense when this file is created by [bacon](https://dystroy.org/bacon) with `-e` option running in nvim's work directory or in a parent directoryi (minimal bacon version: 2.1).
 
 ## API:
 
