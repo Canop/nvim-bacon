@@ -130,7 +130,11 @@ local function bacon_load()
         -- each line is like "error lua/bacon.lua:61:15"
         local cat, path, line, col = string.match(raw_line, '(%S+) (%S+):(%d+):(%d+)')
         if #cat > 0 then
-          local location = { cat=cat, path=dir..path, line=tonumber(line), col=tonumber(col) }
+          local loc_path = path
+          if string.sub(loc_path, 1, 1) ~= '/' then
+            loc_path = dir .. loc_path
+          end
+          local location = { cat=cat, path=loc_path, line=tonumber(line), col=tonumber(col) }
           table.insert(locations, location)
         end
       end
