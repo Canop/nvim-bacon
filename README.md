@@ -2,7 +2,19 @@
 
 This plugin enables viewing the locations found in a `.bacon-locations` file, and jumping to them.
 
-This makes sense when this file is created by [bacon](https://dystroy.org/bacon) with `-e` option running in nvim's work directory or in a parent directoryi (minimal bacon version: 2.1).
+# Installation
+
+This extension may be imported with a standard plugin system, for example with [vim-plug](https://github.com/junegunn/vim-plug):
+
+```vim
+Plug 'Canop/nvim-bacon'
+```
+
+You must enable locations export in [bacon](https://dystroy.org/bacon). Add this to your bacon.prefs file:
+
+```TOML
+export_locations = true
+```
 
 ## API:
 
@@ -20,8 +32,7 @@ The following functions are exposed by the plugin:
 
 You'll use this plugin in nvim while a bacon instance is running in another panel, probably side to it.
 
-
-You probably want to define at least two shortcuts, for example like this:
+You should define at least two shortcuts, for example like this:
 
 ```vimscript
 nnoremap ! :BaconLoad<CR>:w<CR>:BaconNext<CR>
