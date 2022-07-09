@@ -10,7 +10,7 @@ This extension may be imported with a standard plugin system, for example with [
 Plug 'Canop/nvim-bacon'
 ```
 
-You must enable locations export in [bacon](https://dystroy.org/bacon). Add this to your bacon.prefs file:
+You must [enable locations export in bacon](https://dystroy.org/bacon/config/#export-locations). Add this to your bacon.prefs file:
 
 ```TOML
 export_locations = true
