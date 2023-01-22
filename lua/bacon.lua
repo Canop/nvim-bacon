@@ -128,8 +128,9 @@ local function bacon_load()
       local raw_lines = lines_from(file)
       for i, raw_line in ipairs(raw_lines) do
         -- each line is like "error lua/bacon.lua:61:15"
+        -- print('parse raw "' .. raw_line .. '"')
         local cat, path, line, col = string.match(raw_line, '(%S+) (%S+):(%d+):(%d+)')
-        if #cat > 0 then
+        if (cat~=nil and #cat > 0) then
           local loc_path = path
           if string.sub(loc_path, 1, 1) ~= '/' then
             loc_path = dir .. loc_path
