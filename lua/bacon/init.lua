@@ -1,5 +1,7 @@
 -- A companion to bacon - https://dystroy.org/bacon
 local config = require("bacon.config")
+-- local options = config.options
+
 local Bacon = {}
 
 local api = vim.api
@@ -123,8 +125,8 @@ end
 -- Open a specific location and remember it as "last
 function Bacon.open_location(idx)
 	local location = locations[idx]
-	api.nvim_command("edit " .. location.path)
-	api.nvim_win_set_cursor(0, { location.line, location.col - 1 })
+	api.nvim_command("edit " .. location.loc_path)
+	api.nvim_win_set_cursor(0, { location.lnum, location.col - 1 })
 	location_idx = idx
 end
 
@@ -164,9 +166,13 @@ function Bacon.bacon_load()
 					if string.sub(loc_path, 1, 1) ~= "/" then
 						loc_path = dir .. loc_path
 					end
-					local location = { cat = cat, path = loc_path, line = tonumber(line), col = tonumber(col) }
+					local location = { text = cat, filename = loc_path, lnum = tonumber(line), col = tonumber(col) }
 					table.insert(locations, location)
 				end
+			end
+			if config.options.quickfix then
+				vim.fn.setqflist(locations, " ")
+				vim.fn.setqflist({}, "a", { title = "Placeholder Title" })
 			end
 			location_idx = 0
 			if old_location then
@@ -188,9 +194,9 @@ local function update_view()
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
 	local lines = {}
 	for i, location in ipairs(locations) do
-		local cat = string.upper(location.cat):sub(1, 1)
+		local cat = string.upper(location.text):sub(1, 1)
 		local shield = center("" .. i, 5)
-		table.insert(lines, " " .. cat .. shield .. location.path .. ":" .. location.line .. ":" .. location.col)
+		table.insert(lines, " " .. cat .. shield .. location.loc_path .. ":" .. location.lnum .. ":" .. location.col)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
 	vim.api.nvim_buf_set_option(buf, "modifiable", false)
