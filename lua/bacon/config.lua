@@ -1,6 +1,8 @@
 local M = {}
 
-local defaults = {}
+local defaults = {
+	quickfix = false,
+}
 
 M.options = {}
 
