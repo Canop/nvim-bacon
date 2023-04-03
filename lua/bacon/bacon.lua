@@ -1,4 +1,5 @@
 -- A companion to bacon - https://dystroy.org/bacon
+local Bacon = {}
 
 local api = vim.api
 local buf, win
@@ -41,7 +42,7 @@ local function open_window()
 	api.nvim_buf_add_highlight(buf, -1, "BaconHeader", 0, 0, -1)
 end
 
-local function close_window()
+function Bacon.close_window()
 	api.nvim_win_close(win, true)
 end
 
@@ -63,7 +64,7 @@ function lines_from(file)
 	return lines
 end
 
-local function move_cursor()
+function Bacon.move_cursor()
 	local new_pos = math.max(3, api.nvim_win_get_cursor(win)[1] - 1)
 	api.nvim_win_set_cursor(win, { new_pos, 0 })
 end
@@ -115,7 +116,7 @@ local function set_mappings()
 end
 
 -- Open a specific location and remember it as "last
-local function open_location(idx)
+function Bacon.open_location(idx)
 	local location = locations[idx]
 	api.nvim_command("edit " .. location.path)
 	api.nvim_win_set_cursor(0, { location.line, location.col - 1 })
@@ -123,11 +124,11 @@ local function open_location(idx)
 end
 
 -- Open the location under the cursor in the location window
-local function open_selected_location()
+function Bacon.open_selected_location()
 	local i = api.nvim_win_get_cursor(win)[1] - 2
-	close_window()
+	Bacon.close_window()
 	if i > 0 and i <= #locations then
-		open_location(i)
+		Bacon.open_location(i)
 	end
 end
 
@@ -138,7 +139,7 @@ end
 -- Load the locations found in the .bacon-locations file.
 -- Doesn't modify the display, only the location table.
 -- We look in the current work directory and in the parent directories.
-local function bacon_load()
+function Bacon.bacon_load()
 	local old_location = nil
 	if location_idx > 0 then
 		old_location = locations[location_idx]
@@ -191,7 +192,7 @@ local function update_view()
 end
 
 -- Show the window with the locations, assuming they have been previously loaded
-local function bacon_show()
+function Bacon.bacon_show()
 	if #locations > 0 then
 		location_idx = 0
 		open_window()
@@ -204,44 +205,34 @@ local function bacon_show()
 end
 
 -- Load the locations, then show them
-local function bacon_list()
-	bacon_load()
-	bacon_show()
+function Bacon.bacon_list()
+	Bacon.bacon_load()
+	Bacon.bacon_show()
 end
 
-local function bacon_previous()
+function Bacon.bacon_previous()
 	if #locations > 0 then
 		location_idx = location_idx - 1
 		if location_idx < 1 then
 			location_idx = #locations
 		end
-		open_location(location_idx)
+		Bacon.open_location(location_idx)
 	else
 		print("Error: no bacon locations loaded")
 	end
 end
 
-local function bacon_next()
+function Bacon.bacon_next()
 	if #locations > 0 then
 		location_idx = location_idx + 1
 		if location_idx > #locations then
 			location_idx = 1
 		end
-		open_location(location_idx)
+		Bacon.open_location(location_idx)
 	else
 		print("Error: no bacon locations loaded")
 	end
 end
 
 -- Return the public API
-return {
-	bacon_load = bacon_load,
-	bacon_list = bacon_list,
-	bacon_show = bacon_show,
-	bacon_previous = bacon_previous,
-	bacon_next = bacon_next,
-	open_selected_location = open_selected_location,
-	open_location = open_location,
-	move_cursor = move_cursor,
-	close_window = close_window,
-}
+return Bacon
