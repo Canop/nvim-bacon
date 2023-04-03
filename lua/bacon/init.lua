@@ -125,7 +125,7 @@ end
 -- Open a specific location and remember it as "last
 function Bacon.open_location(idx)
 	local location = locations[idx]
-	api.nvim_command("edit " .. location.loc_path)
+	api.nvim_command("edit " .. location.filename)
 	api.nvim_win_set_cursor(0, { location.lnum, location.col - 1 })
 	location_idx = idx
 end
@@ -171,8 +171,9 @@ function Bacon.bacon_load()
 				end
 			end
 			if config.options.quickfix then
+				print("Bacon: Loaded to Quickfix")
 				vim.fn.setqflist(locations, " ")
-				vim.fn.setqflist({}, "a", { title = "Placeholder Title" })
+				vim.fn.setqflist({}, "a", { title = "Bacon" })
 			end
 			location_idx = 0
 			if old_location then
@@ -196,7 +197,7 @@ local function update_view()
 	for i, location in ipairs(locations) do
 		local cat = string.upper(location.text):sub(1, 1)
 		local shield = center("" .. i, 5)
-		table.insert(lines, " " .. cat .. shield .. location.loc_path .. ":" .. location.lnum .. ":" .. location.col)
+		table.insert(lines, " " .. cat .. shield .. location.filename .. ":" .. location.lnum .. ":" .. location.col)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
 	vim.api.nvim_buf_set_option(buf, "modifiable", false)
