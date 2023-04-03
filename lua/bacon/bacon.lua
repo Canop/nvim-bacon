@@ -1,4 +1,5 @@
 -- A companion to bacon - https://dystroy.org/bacon
+local config = require("bacon.config")
 local Bacon = {}
 
 local api = vim.api
@@ -6,6 +7,10 @@ local buf, win
 
 local locations
 local location_idx = 0 -- 1-indexed, 0 is "none"
+
+function Bacon.setup(opts)
+	config.setup(opts)
+end
 
 local function center(str, width)
 	local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
