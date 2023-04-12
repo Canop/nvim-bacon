@@ -1,7 +1,9 @@
 local M = {}
 
 local defaults = {
-	quickfix = false,
+	quickfix = {
+		enabled = true,
+	},
 }
 
 M.options = {}

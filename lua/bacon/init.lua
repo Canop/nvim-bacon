@@ -170,8 +170,7 @@ function Bacon.bacon_load()
 					table.insert(locations, location)
 				end
 			end
-			if config.options.quickfix then
-				print("Bacon: Loaded to Quickfix")
+			if config.options.quickfix.enabled then
 				vim.fn.setqflist(locations, " ")
 				vim.fn.setqflist({}, "a", { title = "Bacon" })
 			end
