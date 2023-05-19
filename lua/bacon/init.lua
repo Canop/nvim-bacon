@@ -192,11 +192,16 @@ end
 -- Fill our buf with the locations, one per line
 local function update_view()
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
+	local cwd = vim.fn.getcwd() .. '/'
 	local lines = {}
 	for i, location in ipairs(locations) do
 		local cat = string.upper(location.text):sub(1, 1)
+		local path = location.filename
+		if string.find(path, cwd) == 1 then
+			path = string.gsub(location.filename, cwd, '')
+		end
 		local shield = center("" .. i, 5)
-		table.insert(lines, " " .. cat .. shield .. location.filename .. ":" .. location.lnum .. ":" .. location.col)
+		table.insert(lines, " " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
 	vim.api.nvim_buf_set_option(buf, "modifiable", false)
