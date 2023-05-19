@@ -22,13 +22,7 @@ You'll use this plugin in nvim while a bacon instance is running in another pane
 
 To navigate among errors and warnings, you'll use either the standard Quickfix feature of your editor or nvim-bacon dedicated commands and view.
 
-### Quickfix Integration
-
-Errors and warnings populate the [Quicklist](http://neovim.io/doc/user/quickfix.html) list so that you can see them with `:copen` (and close with `:ccl`), go to the next one with `:cn`, etc.
-
 ### Specialized Commands and View
-
-Nvim-bacon also comes with its own alternative set of commands and its specialized view.
 
 The following functions are exposed by the plugin:
 
@@ -60,3 +54,17 @@ When the list is open, you can select a line and hit <kbd>enter</kbd> or just hi
 As there's no need to wait for the window to appear, you may just type <kbd>,</kbd><kbd>3</kbd> to go to location 3 without opening the window.
 
 You may define other shortcuts using the various API functions.
+
+### Quickfix Integration
+
+Errors and warnings also populate the [Quicklist](http://neovim.io/doc/user/quickfix.html) list by default.
+
+You can disable this feature with this configuration:
+
+```lua
+require("bacon").setup({
+    quickfix  = {
+         enabled = true -- populates the quickfix list with bacon errors and warnings
+    }
+)}
+```
