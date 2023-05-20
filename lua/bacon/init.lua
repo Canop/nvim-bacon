@@ -174,7 +174,7 @@ function Bacon.bacon_load()
 				vim.fn.setqflist(locations, " ")
 				vim.fn.setqflist({}, "a", { title = "Bacon" })
 
-				if config.options.quickfix.event then
+				if config.options.quickfix.event_trigger then
 					vim.cmd("doautocmd QuickFixCmdPost")
 				end
 			end
