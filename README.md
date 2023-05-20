@@ -64,7 +64,7 @@ You can disable this feature with this configuration:
 ```lua
 require("bacon").setup({
     quickfix  = {
-         enabled = true -- populates the quickfix list with bacon errors and warnings
+         enabled = false -- true to populate the quickfix list with bacon errors and warnings
     }
 )}
 ```
