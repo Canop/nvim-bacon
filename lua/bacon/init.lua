@@ -175,6 +175,7 @@ function Bacon.bacon_load()
 				vim.fn.setqflist({}, "a", { title = "Bacon" })
 
 				if config.options.quickfix.event_trigger then
+					-- triggers the Neovim event for populating the quickfix list
 					vim.cmd("doautocmd QuickFixCmdPost")
 				end
 			end
