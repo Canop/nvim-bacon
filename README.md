@@ -26,14 +26,13 @@ To navigate among errors and warnings, you'll use either the standard Quickfix f
 
 The following functions are exposed by the plugin:
 
-|Function|Usage|
-|-|-|
-|`:BaconLoad`| Silently load the locations of the `.bacon-locations` file|
-|`:BaconShow`| Display the locations in a floating windoaw|
-|`:BaconList`| Does `:BaconLoad` then `:BaconShow`|
-|`:BaconPrevious`| Jump to the previous location in the current list |
-|`:BaconNext`| Jump to the next location in the current list |
-
+| Function         | Usage                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| `:BaconLoad`     | Silently load the locations of the `.bacon-locations` file |
+| `:BaconShow`     | Display the locations in a floating windoaw                |
+| `:BaconList`     | Does `:BaconLoad` then `:BaconShow`                        |
+| `:BaconPrevious` | Jump to the previous location in the current list          |
+| `:BaconNext`     | Jump to the next location in the current list              |
 
 You should define at least two shortcuts, for example like this:
 
