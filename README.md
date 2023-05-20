@@ -64,6 +64,7 @@ You can disable this feature with this configuration:
 require("bacon").setup({
     quickfix  = {
          enabled = false -- true to populate the quickfix list with bacon errors and warnings
+         event = true -- triggers the QuickFixCmdPost event after populating the quickfix list
     }
 )}
 ```
