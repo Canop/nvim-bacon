@@ -16,7 +16,13 @@ You must [enable locations export in bacon](https://dystroy.org/bacon/config/#ex
 export_locations = true
 ```
 
-## API:
+## Usage
+
+You'll use this plugin in nvim while a bacon instance is running in another panel, probably side to it.
+
+To navigate among errors and warnings, you'll use either the standard Quickfix feature of your editor or nvim-bacon dedicated commands and view.
+
+### Specialized Commands and View
 
 The following functions are exposed by the plugin:
 
@@ -28,9 +34,6 @@ The following functions are exposed by the plugin:
 |`:BaconPrevious`| Jump to the previous location in the current list |
 |`:BaconNext`| Jump to the next location in the current list |
 
-## Usage
-
-You'll use this plugin in nvim while a bacon instance is running in another panel, probably side to it.
 
 You should define at least two shortcuts, for example like this:
 
@@ -51,3 +54,17 @@ When the list is open, you can select a line and hit <kbd>enter</kbd> or just hi
 As there's no need to wait for the window to appear, you may just type <kbd>,</kbd><kbd>3</kbd> to go to location 3 without opening the window.
 
 You may define other shortcuts using the various API functions.
+
+### Quickfix Integration
+
+Errors and warnings also populate the [Quicklist](http://neovim.io/doc/user/quickfix.html) list by default.
+
+You can disable this feature with this configuration:
+
+```lua
+require("bacon").setup({
+    quickfix  = {
+         enabled = false -- true to populate the quickfix list with bacon errors and warnings
+    }
+)}
+```
