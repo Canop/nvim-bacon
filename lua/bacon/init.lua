@@ -158,22 +158,27 @@ function Bacon.bacon_load()
 		if file_exists(file) then
 			local raw_lines = lines_from(file)
 			for i, raw_line in ipairs(raw_lines) do
-				-- each line is like "error lua/bacon.lua:61:15"
+				-- each line is like "error lua/bacon.lua:61:15 the faucet is leaking"
 				-- print('parse raw "' .. raw_line .. '"')
-				local cat, path, line, col = string.match(raw_line, "(%S+) (%S+):(%d+):(%d+)")
+				local cat, path, line, col, text = string.match(raw_line, "(%S+) (%S+):(%d+):(%d+)(.*)")
 				if cat ~= nil and #cat > 0 then
 					local loc_path = path
 					if string.sub(loc_path, 1, 1) ~= "/" then
 						loc_path = dir .. loc_path
 					end
-					local location = { text = cat, filename = loc_path, lnum = tonumber(line), col = tonumber(col) }
+					local location = {
+						text = cat,
+						filename = loc_path,
+						lnum = tonumber(line),
+						col = tonumber(col),
+						text = text
+					}
 					table.insert(locations, location)
 				end
 			end
 			if config.options.quickfix.enabled then
 				vim.fn.setqflist(locations, " ")
 				vim.fn.setqflist({}, "a", { title = "Bacon" })
-
 				if config.options.quickfix.event_trigger then
 					-- triggers the Neovim event for populating the quickfix list
 					vim.cmd("doautocmd QuickFixCmdPost")
@@ -206,10 +211,10 @@ local function update_view()
 			path = string.gsub(location.filename, cwd, "")
 		end
 		local shield = center("" .. i, 5)
-		table.insert(lines, " " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col)
+		table.insert(lines, " " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col .. " | " .. location.text)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
-	vim.api.nvim_buf_set_option(buf, "modifiable", false)
+	api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
 -- Show the window with the locations, assuming they have been previously loaded
@@ -219,6 +224,7 @@ function Bacon.bacon_show()
 		open_window()
 		update_view()
 		set_mappings()
+		api.nvim_win_set_option(win, "wrap", false)
 		api.nvim_win_set_cursor(win, { 3, 1 })
 	else
 		print("Error: no bacon locations loaded")
