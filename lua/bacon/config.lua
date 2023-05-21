@@ -3,6 +3,7 @@ local M = {}
 local defaults = {
 	quickfix = {
 		enabled = true,
+		event_trigger = true,
 	},
 }
 

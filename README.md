@@ -26,14 +26,13 @@ To navigate among errors and warnings, you'll use either the standard Quickfix f
 
 The following functions are exposed by the plugin:
 
-|Function|Usage|
-|-|-|
-|`:BaconLoad`| Silently load the locations of the `.bacon-locations` file|
-|`:BaconShow`| Display the locations in a floating windoaw|
-|`:BaconList`| Does `:BaconLoad` then `:BaconShow`|
-|`:BaconPrevious`| Jump to the previous location in the current list |
-|`:BaconNext`| Jump to the next location in the current list |
-
+| Function         | Usage                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| `:BaconLoad`     | Silently load the locations of the `.bacon-locations` file |
+| `:BaconShow`     | Display the locations in a floating windoaw                |
+| `:BaconList`     | Does `:BaconLoad` then `:BaconShow`                        |
+| `:BaconPrevious` | Jump to the previous location in the current list          |
+| `:BaconNext`     | Jump to the next location in the current list              |
 
 You should define at least two shortcuts, for example like this:
 
@@ -46,11 +45,11 @@ The first shortcut navigates from location to location, without opening the wind
 This is probably the one you'll use all the time.
 You may notice it loads the list (`:BaconLoad`) then saves the current document (`:w`), to prevent both race conditions and having a bunch of unsaved buffers.
 
-The second shorctut, which is mapped to the <kbd>,</kbd> key, opens the list of all bacon locations:
+The second shortcut, which is mapped to the <kbd>,</kbd> key, opens the list of all bacon locations:
 
 ![list](doc/list.png)
 
-When the list is open, you can select a line and hit <kbd>enter</kbd> or just hit the numero of the location if it's in 1-9.
+When the list is open, you can select a line and hit <kbd>enter</kbd> or just hit the number of the location if it's in 1-9.
 As there's no need to wait for the window to appear, you may just type <kbd>,</kbd><kbd>3</kbd> to go to location 3 without opening the window.
 
 You may define other shortcuts using the various API functions.
@@ -65,6 +64,7 @@ You can disable this feature with this configuration:
 require("bacon").setup({
     quickfix  = {
          enabled = false -- true to populate the quickfix list with bacon errors and warnings
+         event_trigger = true -- triggers the QuickFixCmdPost event after populating the quickfix list
     }
 )}
 ```
