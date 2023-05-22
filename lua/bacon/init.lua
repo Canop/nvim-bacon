@@ -167,7 +167,7 @@ function Bacon.bacon_load()
 						loc_path = dir .. loc_path
 					end
 					local location = {
-						text = cat,
+						cat = cat,
 						filename = loc_path,
 						lnum = tonumber(line),
 						col = tonumber(col),
@@ -205,7 +205,7 @@ local function update_view()
 	local cwd = vim.fn.getcwd() .. "/"
 	local lines = {}
 	for i, location in ipairs(locations) do
-		local cat = string.upper(location.text):sub(1, 1)
+		local cat = string.upper(location.cat):sub(1, 1)
 		local path = location.filename
 		if string.find(path, cwd) == 1 then
 			path = string.gsub(location.filename, cwd, "")
