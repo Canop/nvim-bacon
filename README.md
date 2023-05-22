@@ -47,7 +47,7 @@ You may notice it loads the list (`:BaconLoad`) then saves the current document 
 
 The second shortcut, which is mapped to the <kbd>,</kbd> key, opens the list of all bacon locations:
 
-![list](doc/list.png)
+![list-and-bacon](doc/list-and-bacon.png)
 
 When the list is open, you can select a line and hit <kbd>enter</kbd> or just hit the number of the location if it's in 1-9.
 As there's no need to wait for the window to appear, you may just type <kbd>,</kbd><kbd>3</kbd> to go to location 3 without opening the window.
