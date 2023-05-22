@@ -171,8 +171,10 @@ function Bacon.bacon_load()
 						filename = loc_path,
 						lnum = tonumber(line),
 						col = tonumber(col),
-						text = text,
 					}
+					if text ~= "" then
+						location.text = text
+					end
 					table.insert(locations, location)
 				end
 			end
