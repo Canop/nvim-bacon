@@ -174,7 +174,7 @@ function Bacon.bacon_load()
 					}
 					if text ~= "" then
 						location.text = text
-					else 
+					else
 						location.text = ""
 					end
 					table.insert(locations, location)
