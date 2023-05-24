@@ -20,7 +20,7 @@ export_locations = true
 
 You'll use this plugin in nvim while a bacon instance is running in another panel, probably side to it.
 
-To navigate among errors and warnings, you'll use either the standard Quickfix feature of your editor or nvim-bacon dedicated commands and view.
+To navigate errors and warnings, you can either use the standard [Quickfix](http://neovim.io/doc/user/quickfix.html) feature of your editor or `nvim-bacon`'s dedicated commands and view.
 
 ### Specialized Commands and View
 
@@ -54,17 +54,16 @@ As there's no need to wait for the window to appear, you may just type <kbd>,</k
 
 You may define other shortcuts using the various API functions.
 
-### Quickfix Integration
+### Configuration
 
-Errors and warnings also populate the [Quicklist](http://neovim.io/doc/user/quickfix.html) list by default.
-
-You can disable this feature with this configuration:
+The default configuration options can be found below.
 
 ```lua
 require("bacon").setup({
     quickfix  = {
-         enabled = false -- true to populate the quickfix list with bacon errors and warnings
+         enabled = true -- populates the quickfix list with bacon errors and warnings
          event_trigger = true -- triggers the QuickFixCmdPost event after populating the quickfix list
-    }
+    },
+    autoload = true -- Automatically loads locations on save.
 )}
 ```
