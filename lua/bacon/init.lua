@@ -292,7 +292,7 @@ local function watch_loc_file(path)
 		recursive = false,
 	}
 
-	local event_cb = function(err, filename, events)
+	local event_cb = function(err, _, _)
 		if err then
 			error("Autoload failed to watch .bacon-locations")
 		else
@@ -311,12 +311,14 @@ if config.options.autoload then
 		pattern = { "rust" },
 		callback = function()
 			local path = find_loc_file()
-			local handle = watch_loc_file(path) -- creates watcher when opening/creating rust file
-			api.nvim_create_autocmd("QuitPre", {
-				callback = function()
-					loop.fs_event_stop(handle) -- closes watcher on exit
-				end,
-			})
+			if path then
+				local handle = watch_loc_file(path) -- creates watcher when opening/creating rust file
+				api.nvim_create_autocmd("QuitPre", {
+					callback = function()
+						loop.fs_event_stop(handle) -- closes watcher on exit
+					end,
+				})
+			end
 		end,
 	})
 end
