@@ -268,5 +268,11 @@ function Bacon.bacon_next()
 	end
 end
 
+if config.options.autoload then
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = { "rust" },
+		callback = function() end,
+	})
+end
 -- Return the public API
 return Bacon
