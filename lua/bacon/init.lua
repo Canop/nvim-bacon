@@ -300,10 +300,10 @@ local function watch_loc_file(path)
 				Bacon.bacon_load()
 			end)
 		end
-		loop.fs_event_stop(handle)
 	end
-
 	loop.fs_event_start(handle, path, flags, event_cb)
+
+	return handle
 end
 
 if config.options.autoload then
@@ -311,9 +311,10 @@ if config.options.autoload then
 		pattern = { "rust" },
 		callback = function()
 			local path = find_loc_file()
-			api.nvim_create_autocmd("BufWritePost", {
+			local handle = watch_loc_file(path) -- creates watcher when opening/creating rust file
+			api.nvim_create_autocmd("QuitPre", {
 				callback = function()
-					watch_loc_file(path)
+					loop.fs_event_stop(handle) -- closes watcher on exit
 				end,
 			})
 		end,
