@@ -296,7 +296,9 @@ local function watch_loc_file(path)
 		if err then
 			error("Autoload failed to watch .bacon-locations")
 		else
-			Bacon.bacon_load()
+			vim.schedule(function()
+				Bacon.bacon_load()
+			end)
 		end
 		loop.fs_event_stop(handle)
 	end
