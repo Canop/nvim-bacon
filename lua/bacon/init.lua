@@ -268,6 +268,17 @@ function Bacon.bacon_next()
 	end
 end
 
+local function find_loc_file()
+	local dir = ""
+	repeat
+		local file = dir .. ".bacon-locations"
+		if file_exists(file) then
+			return file
+		end
+		dir = "../" .. dir
+	until not file_exists(dir)
+end
+
 if config.options.autoload then
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = { "rust" },
