@@ -171,8 +171,10 @@ function Bacon.bacon_load()
 						filename = loc_path,
 						lnum = tonumber(line),
 						col = tonumber(col),
-						text = text
 					}
+					if text ~= "" then
+						location.text = text
+					end
 					table.insert(locations, location)
 				end
 			end
@@ -211,7 +213,10 @@ local function update_view()
 			path = string.gsub(location.filename, cwd, "")
 		end
 		local shield = center("" .. i, 5)
-		table.insert(lines, " " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col .. " | " .. location.text)
+		table.insert(
+			lines,
+			" " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col .. " | " .. location.text
+		)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
 	api.nvim_buf_set_option(buf, "modifiable", false)
