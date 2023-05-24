@@ -5,6 +5,8 @@ local config = require("bacon.config")
 local Bacon = {}
 
 local api = vim.api
+local loop = vim.loop
+
 local buf, win
 
 local locations
@@ -279,10 +281,40 @@ local function find_loc_file()
 	until not file_exists(dir)
 end
 
+local function watch_loc_file(path)
+	-- Adapted from https://github.com/rktjmp/fwatch.nvim
+
+	local handle = loop.new_fs_event()
+
+	local flags = {
+		watch_entry = false,
+		stat = false,
+		recursive = false,
+	}
+
+	local event_cb = function(err, filename, events)
+		if err then
+			error("Autoload failed to watch .bacon-locations")
+		else
+			Bacon.bacon_load()
+		end
+		loop.fs_event_stop(handle)
+	end
+
+	loop.fs_event_start(handle, path, flags, event_cb)
+end
+
 if config.options.autoload then
-	vim.api.nvim_create_autocmd("FileType", {
+	api.nvim_create_autocmd("FileType", {
 		pattern = { "rust" },
-		callback = function() end,
+		callback = function()
+			local path = find_loc_file()
+			api.nvim_create_autocmd("BufWritePost", {
+				callback = function()
+					watch_loc_file(path)
+				end,
+			})
+		end,
 	})
 end
 -- Return the public API
