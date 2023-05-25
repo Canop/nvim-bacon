@@ -140,7 +140,7 @@ function Bacon.open_selected_location()
 end
 
 local function same_location(a, b)
-	return a and b and a.path == b.path and a.line == b.line and a.col == b.col
+	return a and b and a.filename == b.filename and a.lnum == b.lnum and a.col == b.col
 end
 
 -- Load the locations found in the .bacon-locations file.
