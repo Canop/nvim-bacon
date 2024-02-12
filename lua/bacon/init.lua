@@ -21,6 +21,8 @@ local function center(str, width)
 end
 
 local function open_window()
+	Bacon.close_window() -- close the window if it's already open
+
 	buf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 	vim.api.nvim_buf_set_option(buf, "filetype", "bacon")
@@ -49,8 +51,14 @@ local function open_window()
 	api.nvim_buf_add_highlight(buf, -1, "BaconHeader", 0, 0, -1)
 end
 
+-- Close the bacon list. Do nothing if it's not open
 function Bacon.close_window()
-	api.nvim_win_close(win, true)
+	if win ~= nil then
+		if win == api.nvim_get_current_win() then
+			api.nvim_win_close(win, true)
+		end
+		win = nil
+	end
 end
 
 -- Tell whether a file exists
