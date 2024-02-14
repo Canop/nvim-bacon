@@ -5,6 +5,8 @@ local config = require("bacon.config")
 local Bacon = {}
 
 local api = vim.api
+local loop = vim.loop
+
 local buf, win
 
 local locations
@@ -182,7 +184,7 @@ function Bacon.bacon_load()
 					}
 					if text ~= "" then
 						location.text = text
-					else 
+					else
 						location.text = ""
 					end
 					table.insert(locations, location)
@@ -276,5 +278,57 @@ function Bacon.bacon_next()
 	end
 end
 
+local function find_loc_file()
+	local dir = ""
+	repeat
+		local file = dir .. ".bacon-locations"
+		if file_exists(file) then
+			return file
+		end
+		dir = "../" .. dir
+	until not file_exists(dir)
+end
+
+local function watch_loc_file(path)
+	-- Adapted from https://github.com/rktjmp/fwatch.nvim
+
+	local handle = loop.new_fs_event()
+
+	local flags = {
+		watch_entry = false,
+		stat = false,
+		recursive = false,
+	}
+
+	local event_cb = function(err, _, _)
+		if err then
+			error("Autoload failed to watch .bacon-locations")
+		else
+			vim.schedule(function()
+				Bacon.bacon_load()
+			end)
+		end
+	end
+	loop.fs_event_start(handle, path, flags, event_cb)
+
+	return handle
+end
+
+if config.options.autoload then
+	api.nvim_create_autocmd("FileType", {
+		pattern = { "rust" },
+		callback = function()
+			local path = find_loc_file()
+			if path then
+				local handle = watch_loc_file(path) -- creates watcher when opening/creating rust file
+				api.nvim_create_autocmd("QuitPre", {
+					callback = function()
+						loop.fs_event_stop(handle) -- closes watcher on exit
+					end,
+				})
+			end
+		end,
+	})
+end
 -- Return the public API
 return Bacon

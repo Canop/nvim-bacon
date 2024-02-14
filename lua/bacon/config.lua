@@ -5,6 +5,7 @@ local defaults = {
 		enabled = true,
 		event_trigger = true,
 	},
+	autoload = true,
 }
 
 M.options = {}
