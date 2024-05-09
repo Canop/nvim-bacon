@@ -169,17 +169,17 @@ function Bacon.bacon_load()
 				-- each line is like "error lua/bacon.lua:61:15 the faucet is leaking"
 				-- print('parse raw "' .. raw_line .. '"')
 				local cat
-                		local path
-                		local line
-                		local col
-                		local text
+				local path
+				local line
+				local col
+				local text
 
-				if vim.fn.has("win32") then
-		                    raw_line = raw_line:gsub("\\", "/")
-		                    cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
-		                else
-		                    cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
-		                end
+				if vim.fn.has("win32") > 0 then
+					raw_line = raw_line:gsub("\\", "/")
+					cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
+				else
+					cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
+				end
 
 				if cat ~= nil and #cat > 0 then
 					local loc_path = path
