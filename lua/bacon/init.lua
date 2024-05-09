@@ -62,7 +62,7 @@ function Bacon.close_window()
 end
 
 -- Tell whether a file exists
-function file_exists(file)
+local function file_exists(file)
 	local f = io.open(file, "rb")
 	if f then
 		f:close()
@@ -71,7 +71,7 @@ function file_exists(file)
 end
 
 -- get all lines from a file
-function lines_from(file)
+local function lines_from(file)
 	local lines = {}
 	for line in io.lines(file) do
 		lines[#lines + 1] = line
@@ -169,17 +169,17 @@ function Bacon.bacon_load()
 				-- each line is like "error lua/bacon.lua:61:15 the faucet is leaking"
 				-- print('parse raw "' .. raw_line .. '"')
 				local cat
-                		local path
-                		local line
-                		local col
-                		local text
+				local path
+				local line
+				local col
+				local text
 
 				if vim.fn.has("win32") then
-		                    raw_line = raw_line:gsub("\\", "/")
-		                    cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
-		                else
-		                    cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
-		                end
+					raw_line = raw_line:gsub("\\", "/")
+					cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
+				else
+					cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
+				end
 
 				if cat ~= nil and #cat > 0 then
 					local loc_path = path
@@ -194,7 +194,7 @@ function Bacon.bacon_load()
 					}
 					if text ~= "" then
 						location.text = text
-					else 
+					else
 						location.text = ""
 					end
 					table.insert(locations, location)
