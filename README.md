@@ -12,8 +12,9 @@ Plug 'Canop/nvim-bacon'
 
 You must [enable locations export in bacon](https://dystroy.org/bacon/config/#export-locations). Add this to your bacon.prefs file:
 
-```TOML
-export_locations = true
+```toml
+[export]
+enabled = true
 ```
 
 ## Usage
