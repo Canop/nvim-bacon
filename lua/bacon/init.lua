@@ -174,7 +174,7 @@ function Bacon.bacon_load()
                 		local col
                 		local text
 
-				if vim.fn.has("win32") then
+				if vim.fn.has("win32") == 1 then
 		                    raw_line = raw_line:gsub("\\", "/")
 		                    cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
 		                else
