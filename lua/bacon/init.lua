@@ -219,6 +219,10 @@ function Bacon.bacon_load()
 			end
 			break
 		end
+
+		if vim.loop.fs_realpath(dir) == "/" then
+			break
+		end
 		dir = "../" .. dir
 	until not file_exists(dir)
 end
