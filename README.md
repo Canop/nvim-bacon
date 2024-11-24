@@ -10,6 +10,24 @@ This extension may be imported with a standard plugin system, for example with [
 Plug 'Canop/nvim-bacon'
 ```
 
+or using [lazyvim](https://www.lazyvim.org/) in someplace like lua/config/plugins/bacon.lua
+```vim
+return {
+    -- other plugins
+    {
+        "Canop/nvim-bacon",
+        config = function()
+            require("bacon").setup({
+                quickfix = {
+                    enabled = true, -- Enable Quickfix integration
+                    event_trigger = true, -- Trigger QuickFixCmdPost after populating Quickfix list
+                },
+            })
+        end,
+    },
+}
+```
+
 You must [enable locations export in bacon](https://dystroy.org/bacon/config/#exports).
 
 Change/uncomment the exports part of your prefs.toml file:
@@ -44,6 +62,15 @@ You should define at least two shortcuts, for example like this:
 ```vimscript
 nnoremap ! :BaconLoad<CR>:w<CR>:BaconNext<CR>
 nnoremap , :BaconList<CR>
+```
+
+or like this in lua/config/keymaps.lua:
+```vim
+local map = LazyVim.safe_keymap_set
+map("n", "!", ":BaconLoad<CR>:w<CR>:BaconNext<CR>", { desc = "Navigate to next bacon location" })
+
+-- Shortcut to open the bacon locations list
+map("n", ",", ":BaconList<CR>", { desc = "Open bacon locations list" })
 ```
 
 The first shortcut navigates from location to location, without opening the window.
