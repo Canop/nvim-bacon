@@ -2,15 +2,20 @@
 
 This plugin enables viewing the locations found in a `.bacon-locations` file, and jumping to them.
 
-# Installation
+## Installation in Neovim
 
-This extension may be imported with a standard plugin system, for example with [vim-plug](https://github.com/junegunn/vim-plug):
+This extension may be imported with a standard plugin system.
+
+### [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```vim
 Plug 'Canop/nvim-bacon'
 ```
 
-or using [lazyvim](https://www.lazyvim.org/) in someplace like lua/config/plugins/bacon.lua
+### [lazyvim](https://www.lazyvim.org/):
+
+In eg `lua/config/plugins/bacon.lua`:
+
 ```vim
 return {
     -- other plugins
@@ -27,6 +32,8 @@ return {
     },
 }
 ```
+
+## Bacon configuration
 
 You must [enable locations export in bacon](https://dystroy.org/bacon/config/#exports).
 
@@ -64,7 +71,8 @@ nnoremap ! :BaconLoad<CR>:w<CR>:BaconNext<CR>
 nnoremap , :BaconList<CR>
 ```
 
-or like this in lua/config/keymaps.lua:
+or, if using lazyVim, in lua/config/keymaps.lua:
+
 ```vim
 local map = LazyVim.safe_keymap_set
 map("n", "!", ":BaconLoad<CR>:w<CR>:BaconNext<CR>", { desc = "Navigate to next bacon location" })
