@@ -76,8 +76,6 @@ or, if using lazyVim, in lua/config/keymaps.lua:
 ```vim
 local map = LazyVim.safe_keymap_set
 map("n", "!", ":BaconLoad<CR>:w<CR>:BaconNext<CR>", { desc = "Navigate to next bacon location" })
-
--- Shortcut to open the bacon locations list
 map("n", ",", ":BaconList<CR>", { desc = "Open bacon locations list" })
 ```
 
