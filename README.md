@@ -59,7 +59,7 @@ The following functions are exposed by the plugin:
 | Function         | Usage                                                      |
 | ---------------- | ---------------------------------------------------------- |
 | `:BaconLoad`     | Silently load the locations of the `.bacon-locations` file |
-| `:BaconShow`     | Display the locations in a floating windoaw                |
+| `:BaconShow`     | Display the locations in a floating window                 |
 | `:BaconList`     | Does `:BaconLoad` then `:BaconShow`                        |
 | `:BaconPrevious` | Jump to the previous location in the current list          |
 | `:BaconNext`     | Jump to the next location in the current list              |
