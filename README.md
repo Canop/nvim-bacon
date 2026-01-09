@@ -43,8 +43,15 @@ Change/uncomment the exports part of your prefs.toml file:
 [exports.locations]
 auto = true
 path = ".bacon-locations"
-line_format = "{kind} {path}:{line}:{column} {message}"
+line_format = "{item-idx}: {kind} {path}:{line}:{column} {message}"
 ```
+
+In order for nvim-bacon to send commands to bacon, you should also ask it to listen, with
+
+```toml
+listen = true
+```
+
 
 ## Usage
 

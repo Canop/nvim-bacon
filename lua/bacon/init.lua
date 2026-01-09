@@ -1,13 +1,12 @@
 -- A companion to bacon - https://dystroy.org/bacon
 local config = require("bacon.config")
--- local options = config.options
 
 local Bacon = {}
 
 local api = vim.api
 local buf, win
 
-local locations
+local locations = {}
 local location_idx = 0 -- 1-indexed, 0 is "none"
 
 function Bacon.setup(opts)
@@ -15,20 +14,20 @@ function Bacon.setup(opts)
 end
 
 local function center(str, width)
-	local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
-	local remain = width - shift - string.len(str)
+	local shift = math.floor(width / 2) - math.floor(#str / 2)
+	local remain = width - shift - #str
 	return string.rep(" ", shift) .. str .. string.rep(" ", remain)
 end
 
 local function open_window()
 	Bacon.close_window() -- close the window if it's already open
 
-	buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-	vim.api.nvim_buf_set_option(buf, "filetype", "bacon")
+	buf = api.nvim_create_buf(false, true)
+	api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+	api.nvim_buf_set_option(buf, "filetype", "bacon")
 
-	local width = vim.api.nvim_get_option("columns")
-	local height = vim.api.nvim_get_option("lines")
+	local width = api.nvim_get_option("columns")
+	local height = api.nvim_get_option("lines")
 
 	local win_height = math.ceil(height * 0.8 - 4)
 	local win_width = math.ceil(width * 0.8)
@@ -45,20 +44,18 @@ local function open_window()
 	}
 
 	win = api.nvim_open_win(buf, true, opts)
-	vim.api.nvim_win_set_option(win, "cursorline", true)
-	local width = api.nvim_win_get_width(0)
-	api.nvim_buf_set_lines(buf, 0, -1, false, { center("Bacon Locations (hit q to close)", width), "", "" })
+	api.nvim_win_set_option(win, "cursorline", true)
+	local win_width_actual = api.nvim_win_get_width(0)
+	api.nvim_buf_set_lines(buf, 0, -1, false, { center("Bacon Locations (hit q to close)", win_width_actual), "", "" })
 	api.nvim_buf_add_highlight(buf, -1, "BaconHeader", 0, 0, -1)
 end
 
 -- Close the bacon list. Do nothing if it's not open
 function Bacon.close_window()
-	if win ~= nil then
-		if win == api.nvim_get_current_win() then
-			api.nvim_win_close(win, true)
-		end
-		win = nil
+	if win and api.nvim_win_is_valid(win) then
+		api.nvim_win_close(win, true)
 	end
+	win = nil
 end
 
 -- Tell whether a file exists
@@ -130,12 +127,32 @@ local function set_mappings()
 	end
 end
 
+-- Send command to bacon via socket if item_idx is present
+local function send_bacon_command(item_idx)
+	if not item_idx then
+		return
+	end
+	
+	local cmd = string.format('bacon --send "show-item(%d)"', item_idx)
+	vim.fn.jobstart(cmd, {
+		on_exit = function(_, exit_code, _)
+			if exit_code ~= 0 then
+				vim.notify("Failed to send command to bacon", vim.log.levels.WARN)
+			end
+		end,
+		detach = true,
+	})
+end
+
 -- Open a specific location and remember it as "last
 function Bacon.open_location(idx)
 	local location = locations[idx]
 	api.nvim_command("edit " .. location.filename)
 	api.nvim_win_set_cursor(0, { location.lnum, location.col - 1 })
 	location_idx = idx
+	
+	-- Send command to bacon if item_idx is available
+	send_bacon_command(location.item_idx)
 end
 
 -- Open the location under the cursor in the location window
@@ -149,6 +166,60 @@ end
 
 local function same_location(a, b)
 	return a and b and a.filename == b.filename and a.lnum == b.lnum and a.col == b.col
+end
+
+-- Parse a single location line, supporting both old and new formats
+-- Old format: "error lua/bacon.lua:61:15 the faucet is leaking"
+-- New format: "2: error lua/bacon.lua:61:15 the faucet is leaking"
+local function parse_location_line(raw_line, dir)
+	if vim.fn.has("win32") > 0 then
+		raw_line = raw_line:gsub("\\", "/")
+	end
+
+	local item_idx, cat, path, line, col, text
+
+	-- Try parsing with item index first (new format)
+	if vim.fn.has("win32") > 0 then
+		item_idx, cat, path, line, col, text = string.match(raw_line, "^(%d+):%s*(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
+	else
+		item_idx, cat, path, line, col, text = string.match(raw_line, "^(%d+):%s*(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
+	end
+
+	-- If no item index found, try parsing without it (old format)
+	if not cat then
+		if vim.fn.has("win32") > 0 then
+			cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
+		else
+			cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
+		end
+	end
+
+	-- Return nil if parsing failed
+	if not cat or #cat == 0 then
+		return nil
+	end
+
+	-- Build the location path
+	local loc_path = path
+	if string.sub(loc_path, 1, 1) ~= "/" then
+		loc_path = dir .. loc_path
+	end
+
+	-- Create location object
+	local location = {
+		cat = cat,
+		filename = loc_path,
+		lnum = tonumber(line),
+		col = tonumber(col),
+		text = text and text ~= "" and text or "",
+	}
+
+	-- Add item_idx if present
+	if item_idx then
+		location.item_idx = tonumber(item_idx)
+	end
+
+	return location
 end
 
 -- Load the locations found in the .bacon-locations file.
@@ -166,37 +237,8 @@ function Bacon.bacon_load()
 		if file_exists(file) then
 			local raw_lines = lines_from(file)
 			for i, raw_line in ipairs(raw_lines) do
-				-- each line is like "error lua/bacon.lua:61:15 the faucet is leaking"
-				-- print('parse raw "' .. raw_line .. '"')
-				local cat
-				local path
-				local line
-				local col
-				local text
-
-				if vim.fn.has("win32") > 0 then
-					raw_line = raw_line:gsub("\\", "/")
-					cat, path, line, col, text = string.match(raw_line, "(%S+) (%a:[^:]+):(%d+):(%d+)%s*(.*)")
-				else
-					cat, path, line, col, text = string.match(raw_line, "(%S+) ([^:]+):(%d+):(%d+)%s*(.*)")
-				end
-
-				if cat ~= nil and #cat > 0 then
-					local loc_path = path
-					if string.sub(loc_path, 1, 1) ~= "/" then
-						loc_path = dir .. loc_path
-					end
-					local location = {
-						cat = cat,
-						filename = loc_path,
-						lnum = tonumber(line),
-						col = tonumber(col),
-					}
-					if text ~= "" then
-						location.text = text
-					else
-						location.text = ""
-					end
+				local location = parse_location_line(raw_line, dir)
+				if location then
 					table.insert(locations, location)
 				end
 			end
@@ -231,6 +273,18 @@ end
 local function update_view()
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
 	local cwd = vim.fn.getcwd() .. "/"
+	
+	-- Find max item_idx width for alignment
+	local max_idx_width = 0
+	for _, location in ipairs(locations) do
+		if location.item_idx then
+			local idx_width = #tostring(location.item_idx)
+			if idx_width > max_idx_width then
+				max_idx_width = idx_width
+			end
+		end
+	end
+	
 	local lines = {}
 	for i, location in ipairs(locations) do
 		local cat = string.upper(location.cat):sub(1, 1)
@@ -238,10 +292,21 @@ local function update_view()
 		if string.find(path, cwd) == 1 then
 			path = string.gsub(location.filename, cwd, "")
 		end
-		local shield = center("" .. i, 5)
+		
+		-- Format item_idx with left padding for alignment
+		local idx_display = ""
+		if location.item_idx then
+			local idx_str = tostring(location.item_idx)
+			local padding = string.rep(" ", max_idx_width - #idx_str)
+			idx_display = padding .. idx_str .. ": "
+		elseif max_idx_width > 0 then
+			-- Add spacing for alignment when other items have indices
+			idx_display = string.rep(" ", max_idx_width + 2)
+		end
+		
 		table.insert(
 			lines,
-			" " .. cat .. shield .. path .. ":" .. location.lnum .. ":" .. location.col .. " | " .. location.text
+			" " .. idx_display .. cat .. " " .. path .. ":" .. location.lnum .. ":" .. location.col .. " | " .. location.text
 		)
 	end
 	api.nvim_buf_set_lines(buf, 2, -1, false, lines)
